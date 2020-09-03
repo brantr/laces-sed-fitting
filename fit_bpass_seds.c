@@ -233,65 +233,13 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 #endif //FIT_CONT_STRENGTH
 
 #ifdef CHECK_PHOT
-	A = 0.139265689050300772E+02;
-	a_age = 0.649921138293866285E+01;
-	f_esc = 0.0;
-	//f_esc = 0.654566039812631617E+00;
-	//f_esc = 1.0;
-	ebv = 0.331014621373948090E-01;
-	//ebv = 0.0;
-	//f_esc = 0.5;
-	f_esc = 0.25;
-	B_line = 0.1;
-
-
-	//(1-f_esc) * B_line
-	A = 0.126595501423916801E+02;
-	a_age = 0.656199302980435029E+01;
-	f_esc = 0.847544147895375577E+00;
-	ebv = 0.392088356147152345E-01;
+	A = 0.463330098934986836E+02;
+	a_age = 0.620322625011136530E+01;
+	f_esc = 0.148983919356761890E+00;
+	ebv = 0.556668417024295606E-01;
 #ifdef FIT_LINE_STRENGTHS
-	B_line = 0.216287787816939758E+01;
-#endif // FIT_LINE_STRENGTHS
-
-	//Split B_line entirely
-
-
-
-
-	A = 0.256283612365030855E+02;
-	a_age = 0.631154324433783476E+01;
-	f_esc = 0.203669973252986802E+00;
-	ebv = 0.370709643383516987E-01;
-#ifdef FIT_LINE_STRENGTHS
-	B_line = 0.311503571759184694E+00;
-#endif // FIT_LINE_STRENGTHS
-
-
-//decouple lines and continuum
-	A = 0.513693289556891060E+02;
-	a_age = 0.616947367726794837E+01;
-	f_esc = 0.146148059582514034E+00;
-	ebv = 0.553256976460332478E-01;
-#ifdef FIT_LINE_STRENGTHS
-	B_line = 0.241206755469208001E+00;
-#endif // FIT_LINE_STRENGTHS
-#ifdef FIT_CONT_STRENGTH
-	B_cont = 0.800726399751585174E-02;
-#endif // FIT_CONT_STRENGTH
-
-	printf("A      = %e\n",A);
-	printf("age    = %e\n",a_age);
-	printf("f_esc  = %e\n",f_esc);
-	printf("ebv    = %e\n",ebv);
-#ifdef FIT_LINE_STRENGTHS
-	printf("B_line = %e\n",B_line);
-#endif // FIT_LINE_STRENGTHS
-
-#ifdef FIT_CONT_STRENGTH
-	printf("B_cont = %e\n",B_cont);
-#endif // FIT_CONT_STRENGTH
-
+	B_line = 0.240400571844795408E+00;
+#endif //FIT_LINE_STRENGTHS
 #endif // CHECK_PHOT
 
 
