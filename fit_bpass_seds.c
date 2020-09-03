@@ -7,6 +7,7 @@
 #include "bpass_models.h"
 #include <gsl/gsl_interp.h>
 
+//#define CHECK_PHOT
 
 #define SMC_DUST
 #define EBV_PRIOR
@@ -78,14 +79,20 @@
 //#define NO_ESCAPE
 
 //fit to the line strengths individually
-//#define FIT_LINE_STRENGTHS
+#define FIT_LINE_STRENGTHS
+
+//fit to the continuum strength individually
+//#define FIT_CONT_STRENGTH
+
+//affix CONT to B_lines rather than B_cont
+//#define COUPLE_LINES_AND_CONT
 
 #define FIT_NON_DETECTIONS
 
 
 #define FIT_F_ESC
 #define FIT_LINES
-#define FIT_CONTINUUM
+//#define FIT_CONTINUUM
 #define FIT_EBV
 
 #ifndef FIT_LOG_SFR
@@ -108,10 +115,11 @@
 //#define EBV_MAX 0.5
 //#define EBV_MAX 1.0
 
-#define B_LINE_MIN 1.0
-#define B_LINE_MAX 25.0
+#define B_LINE_MIN 0.0
+#define B_LINE_MAX 10.0
 
-
+#define B_CONT_MIN 0.0
+#define B_CONT_MAX 10.0
 
 double klambda_smc(double lambda)
 {
@@ -190,9 +198,14 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 
 	//limit age to 9.3081373786380386
 	//double a_age   = age[0] + (age[n_age-1]-age[0])*Cube[1]; //log10 age
-	double age_max = 9.3081373786380386; // z=3
+	//double age_max = 9.3081373786380386; // z=3
+	double age_max = 9.5206145218782368; // z=2
+	//double age_min = 7.0; 
+	double age_min = age[0];
 	//double age_max = 8.9894498176666922; // z=5.7
-	double a_age   = age[0] + (age_max-age[0])*Cube[ip]; //log10 age
+	//double a_age   = age[0] + (age_max-age[0])*Cube[ip]; //log10 age
+	double a_age   = age_min + (age_max-age_min)*Cube[ip]; //log10 age
+
 	ip++;
 
 #ifdef FIT_F_ESC
@@ -205,10 +218,83 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 	double ebv = EBV_MIN + Cube[ip]*(EBV_MAX-EBV_MIN);
 	ip++;
 #endif //FIT_EBV
+
+
+
+
 #ifdef FIT_LINE_STRENGTHS
 	double B_line = B_LINE_MIN + Cube[ip]*(B_LINE_MAX-B_LINE_MIN);
 	ip++;
 #endif //FIT_LINE_STRENGTHS
+
+#ifdef FIT_CONT_STRENGTH
+	double B_cont = B_CONT_MIN + Cube[ip]*(B_CONT_MAX-B_CONT_MIN);
+	ip++;
+#endif //FIT_CONT_STRENGTH
+
+#ifdef CHECK_PHOT
+	A = 0.139265689050300772E+02;
+	a_age = 0.649921138293866285E+01;
+	f_esc = 0.0;
+	//f_esc = 0.654566039812631617E+00;
+	//f_esc = 1.0;
+	ebv = 0.331014621373948090E-01;
+	//ebv = 0.0;
+	//f_esc = 0.5;
+	f_esc = 0.25;
+	B_line = 0.1;
+
+
+	//(1-f_esc) * B_line
+	A = 0.126595501423916801E+02;
+	a_age = 0.656199302980435029E+01;
+	f_esc = 0.847544147895375577E+00;
+	ebv = 0.392088356147152345E-01;
+#ifdef FIT_LINE_STRENGTHS
+	B_line = 0.216287787816939758E+01;
+#endif // FIT_LINE_STRENGTHS
+
+	//Split B_line entirely
+
+
+
+
+	A = 0.256283612365030855E+02;
+	a_age = 0.631154324433783476E+01;
+	f_esc = 0.203669973252986802E+00;
+	ebv = 0.370709643383516987E-01;
+#ifdef FIT_LINE_STRENGTHS
+	B_line = 0.311503571759184694E+00;
+#endif // FIT_LINE_STRENGTHS
+
+
+//decouple lines and continuum
+	A = 0.513693289556891060E+02;
+	a_age = 0.616947367726794837E+01;
+	f_esc = 0.146148059582514034E+00;
+	ebv = 0.553256976460332478E-01;
+#ifdef FIT_LINE_STRENGTHS
+	B_line = 0.241206755469208001E+00;
+#endif // FIT_LINE_STRENGTHS
+#ifdef FIT_CONT_STRENGTH
+	B_cont = 0.800726399751585174E-02;
+#endif // FIT_CONT_STRENGTH
+
+	printf("A      = %e\n",A);
+	printf("age    = %e\n",a_age);
+	printf("f_esc  = %e\n",f_esc);
+	printf("ebv    = %e\n",ebv);
+#ifdef FIT_LINE_STRENGTHS
+	printf("B_line = %e\n",B_line);
+#endif // FIT_LINE_STRENGTHS
+
+#ifdef FIT_CONT_STRENGTH
+	printf("B_cont = %e\n",B_cont);
+#endif // FIT_CONT_STRENGTH
+
+#endif // CHECK_PHOT
+
+
 
 	double a_f_bin = 0;	//not using currently
 	double a_z_met = 0;	//not using currently
@@ -228,6 +314,10 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 	double dx_age = (a_age - age[k_age])/(age[k_age+1] - age[k_age]);
 
 	double chi2 = 0;
+
+#ifdef CHECK_PHOT
+	printf("PHOT k_age %d dx_age %e\n",k_age,dx_age);
+#endif //CHECK_PHOT
 	
 	for(m=0;m<n_data;m++)
 	{
@@ -246,11 +336,24 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 #ifndef FIT_LINE_STRENGTHS
 		y += (1.0-f_esc)*yl;
 #else  //FIT_LINE_STRENGTHS
-		y += (1.0-f_esc)*B_line*yl;
+		//y += (1.0-f_esc)*B_line*yl;
+		y += B_line*yl;
 #endif //FIT_LINE_STRENGTHS
 #endif //FIT_LINES
+
+
+
 #ifdef FIT_CONTINUUM
+#ifndef FIT_CONT_STRENGTH
+
+#ifndef COUPLE_LINES_AND_CONT
 		y += (1.0-f_esc)*yc;
+#else //COUPLE_LINES_AND_CONT
+		y += B_line*yc;
+#endif //COUPLE_LINES_AND_CONT
+#else //FIT_CONT_STRENGTH
+		y += B_cont*yc;
+#endif //FIT_CONT_STRENGTH
 #endif //FIT_CONTINUUM
 
 
@@ -284,11 +387,25 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 			printf("ERROR AEBV %e\n",AEBV);
 			exit(0);
 		}
+
+//#ifdef CHECK_PHOT
+//		printf("BEFORE DUST AEBV %e ebv %e y prev %e A*y_prev %e\n",AEBV,ebv,y,A*y);
+//#endif //CHECK_PHOT
+
+//		printf("rescaling y %e by %e\n",y,pow(10.0,AEBV));
 		y *= pow(10.0,AEBV);
 #endif //FIT_EBV
 
+//#ifdef CHECK_PHOT
+//		printf("AFTER DUST AEBV %e ebv %e y prev %e A*y_prev %e\n",AEBV,ebv,y,A*y);
+//#endif //CHECK_PHOT
+
+
 		x = (A*y-data_y[m])/data_ye[m];
 
+#ifdef CHECK_PHOT
+	printf("PHOT m %d lambda %e y %e data_y %e data_ye %e x %e\n",m,data_x[m]*(1+z),A*y,data_y[m],data_ye[m],x);
+#endif //CHECK_PHOT
 
 // OLD FITTING
 /*
@@ -473,12 +590,21 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 	Cube[ip] = B_line;  //multiplicative line strength
 	ip++;
 #endif// FIT_LINE_STRENGTHS
+#ifdef FIT_CONT_STRENGTH
+	Cube[ip] = B_cont;  //multiplicative continuum strength
+	ip++;
+#endif// FIT_CONT_STRENGTH
 
 	*lnew = l;			//save the likelihood
 
 #ifdef SHOW_CHI2
 	printf("CHI2: A %e age %e f_esc %e ebv %e chi2 %e\n",A,a_age,f_esc,ebv,chi2);
 #endif //SHOW_CHI2
+
+#ifdef CHECK_PHOT
+	printf("CHI2: A %e age %e f_esc %e ebv %e chi2 %e\n",A,a_age,f_esc,ebv,chi2);
+	exit(0);
+#endif //CHECK_PHOT
 }
 
 /***********************************************************************************************************************/
@@ -585,7 +711,12 @@ int main(int argc, char *argv[])
 	nPar++;					// dimensionality (no. of free parameters)
 	nClsPar++;					// dimensionality (no. of free parameters)
 #endif //FIT_LINE_STRENGTHS
-	
+#ifdef FIT_CONT_STRENGTH
+	ndims++;					// dimensionality (no. of free parameters)
+	nPar++;					// dimensionality (no. of free parameters)
+	nClsPar++;					// dimensionality (no. of free parameters)
+#endif //FIT_CONT_STRENGTH
+		
 
 	int updInt = 100;				// after how many iterations feedback is required & the output files should be updated
 							// note: posterior files are updated & dumper routine is called after every updInt*10 iterations
