@@ -60,6 +60,7 @@ int     n_data;
 double *data_x;
 double *data_y;
 double *data_ye;
+int *fit_flag;
 
 //sed model samples
 double ****sed_model;  
@@ -126,12 +127,15 @@ void allocate_data(void)
   data_x      = (double *) malloc(n_data*sizeof(double));
   data_y      = (double *) malloc(n_data*sizeof(double));
   data_ye     = (double *) malloc(n_data*sizeof(double));
+  fit_flag    = (int *) malloc(n_data*sizeof(int));
 }
 void free_data(void)
 {
   free(data_x);
   free(data_y);
   free(data_ye);
+  free(fit_flag);
+
 }
 void read_data(char fbase[])
 {
@@ -142,6 +146,7 @@ void read_data(char fbase[])
   char fgbuf[10];
 
   double xb, yb, yeb;
+  int ffb;
   int i, ib, jb;
 
   fbuf[0] = fbase[14];
@@ -235,11 +240,12 @@ void read_data(char fbase[])
   //read the SED samples
   for(i=0;i<n_data;i++)
   {
-    fscanf(fp,"%lf %lf %lf\n",&xb,&yb,&yeb);
-    printf("x % e y % e ye % e\n",xb,yb,yeb);
+    fscanf(fp,"%lf %lf %lf %d\n",&xb,&yb,&yeb,&ffb);
+    printf("x % e y % e ye % e fit flag %d\n",xb,yb,yeb,ffb);
     data_x[i] = xb/(1+z);  //wavelength in restframe
     data_y[i] = yb;
     data_ye[i] = yeb;
+    fit_flag[i] = ffb;
   }
 
   //close the data file

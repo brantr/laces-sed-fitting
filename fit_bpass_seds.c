@@ -38,42 +38,6 @@
 */
 
 
-//avoid fitting to F336W
-//#define NO_FIT_F336W
-
-//avoid fitting to U
-//#define NO_FIT_U
-
-//avoid fitting to B
-//#define NO_FIT_B
-
-//avoid fitting to V
-//#define NO_FIT_V
-
-//avoid fitting to R
-//#define NO_FIT_R
-
-//avoid fitting to I
-//#define NO_FIT_I
-
-//avoid fitting to Z
-//#define NO_FIT_Z
-
-//avoid fitting to J
-//#define NO_FIT_J
-
-
-//avoid fitting to K
-//#define NO_FIT_K
-
-//avoid fitting to F160W
-//#define NO_FIT_F160W
-
-//avoid fitting to IRAC
-//#define NO_FIT_IRAC
-
-//#define NO_FIT_OPTICAL
-
 
 //force small escape fractions
 //#define NO_ESCAPE
@@ -240,6 +204,15 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 #ifdef FIT_LINE_STRENGTHS
 	B_line = 0.240400571844795408E+00;
 #endif //FIT_LINE_STRENGTHS
+
+
+//SFR = 57 M_sun/yr
+//Log age = 6.1
+//f_esc = 0.15
+//E(B-V) = 0.057
+//B_line = 0.25
+
+
 #endif // CHECK_PHOT
 
 
@@ -355,46 +328,6 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 	printf("PHOT m %d lambda %e y %e data_y %e data_ye %e x %e\n",m,data_x[m]*(1+z),A*y,data_y[m],data_ye[m],x);
 #endif //CHECK_PHOT
 
-// OLD FITTING
-/*
-#ifndef FIT_NON_DETECTIONS
-		if(((data_y[m]>1.0e-10)&&(fabs(data_x[m]-1215.67)>25.))) //avoid non-detections for the time being, and Lya
-#else	//FIT_NON_DETECTIONS
-
-		//fit non detections
-		if(data_y[m]<1.0e-10)
-			x = A*y/data_ye[m]; //zero mean gaussian, 1-sigma errors
-
-
-		//if(fabs(data_x[m]-1215.67)>25.) //avoid Lya
-		if( (fabs(data_x[m]-1215.67)>25.) && (data_y[m]>0) ) //avoid Lya and negative values
-#endif //FIT_NON_DETECTIONS
-		{
-			//add multiplicative contribution to - log likelihood
-
-			int flag_fit = 1;
-
-
-
-#ifdef NO_FIT_F336W
-			if(m!=0)
-#endif //NO_FIT_F336W
-#ifdef NO_FIT_IRAC
-			if(m<n_data-2)
-#endif //NO_FIT_F336W
-#ifdef NO_FIT_OPTICAL
-			if(m<n_data-3)
-#endif //NO_FIT_F336W
-
-
-			//if this data point contributes
-			//then add the contribution to chi2
-
-			if(flag_fit)
-				l += -0.5*x*x;
-
-		}
-*/
 
 // NEW FITTING
 #ifndef FIT_NON_DETECTIONS
@@ -408,80 +341,10 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 		if(1)
 #endif //FIT_NON_DETECTIONS
 		{
-			//add multiplicative contribution to - log likelihood
-			int flag_fit = 1;
-
-			//avoid lyman alpha, never fit narrow band
-			if(m==3)
-				flag_fit = 0;
-
-
-#ifdef NO_FIT_F336W
-			if(m==0)
-				flag_fit = 0;
-#endif //NO_FIT_F336W
-
-#ifdef NO_FIT_U
-			if(m==1)
-				flag_fit = 0;
-#endif //NO_FIT_U
-
-#ifdef NO_FIT_B
-			if(m==2)
-				flag_fit = 0;
-#endif //NO_FIT_B
-
-
-#ifdef NO_FIT_V
-			if(m==4)
-				flag_fit = 0;
-#endif //NO_FIT_V
-
-
-#ifdef NO_FIT_R
-			if(m==5)
-				flag_fit = 0;
-#endif //NO_FIT_R
-
-#ifdef NO_FIT_I
-			if(m==6)
-				flag_fit = 0;
-#endif //NO_FIT_I
-
-#ifdef NO_FIT_Z
-			if(m==7)
-				flag_fit = 0;
-#endif //NO_FIT_Z
-
-#ifdef NO_FIT_J
-			if(m==8)
-				flag_fit = 0;
-#endif //NO_FIT_J
-
-#ifdef NO_FIT_F160W
-			if(m==9)
-				flag_fit = 0;
-#endif //NO_FIT_F160W
-
-#ifdef NO_FIT_K
-			if(m==10)
-				flag_fit = 0;
-#endif //NO_FIT_K
-
-#ifdef NO_FIT_IRAC
-			if(m>=n_data-2)
-				flag_fit = 0;
-#endif //NO_FIT_F336W
-#ifdef NO_FIT_OPTICAL
-			if(m>=n_data-3)
-				flag_fit = 0;
-#endif //NO_FIT_F336W
-
-
 			//if this data point contributes
 			//then add the contribution to chi2
 
-			if(flag_fit)
+			if(fit_flag[m])
 				l += -0.5*x*x;
 
 		}

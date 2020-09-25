@@ -7,6 +7,7 @@ extern int n_data;       //number of data points
 extern double *data_x;   //data points
 extern double *data_y;   //data points
 extern double *data_ye;  //uncertainty on data points
+extern int *fit_flag;    //do we include this data point in the fit?
 extern int ID;           //galaxy ID
 
 
