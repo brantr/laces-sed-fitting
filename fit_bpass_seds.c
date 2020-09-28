@@ -12,6 +12,8 @@
 #define SMC_DUST
 #define EBV_PRIOR
 
+#define ENFORCE_DUST_FESC_LIMIT
+
 //#define SFR_PRIOR
 
 //#define REVIEW_INFO
@@ -220,6 +222,8 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 	double a_f_bin = 0;	//not using currently
 	double a_z_met = 0;	//not using currently
 
+	double f_dust = 1.0;
+
 	int m;
 	double l = 0;
 	double x;
@@ -369,6 +373,9 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 #endif //EBV_PRIOR
 
 
+
+
+
 	//add a prior on SFR?
 #ifdef SFR_PRIOR
 #ifdef FIT_LOG_SFR
@@ -378,6 +385,27 @@ void LogLike(double *Cube, int *ndim, int *npars, double *lnew, void *context)
 #endif //FIT_LOG_SFR
 	l += -x_sfr*x_sfr;
 #endif //SFR_PRIOR
+
+
+
+#ifdef ENFORCE_DUST_FESC_LIMIT
+
+
+	//dust curve extrapolated to Lyc
+	//double kpx = klambda_smc(0.0912);
+	double kpx = klambda_smc(0.1);
+	double AEBVx = -0.4*ebv*kpx;
+	f_dust = pow(10.0,AEBVx);
+	//printf("kpc %e AEBV %e ebv %e f_dust %e\n",kpx,AEBVx,ebv,f_dust);
+	//exit(0);
+
+
+	//enforce that f_esc is less than or equal to
+	//f_dust, if some what ad hoc
+	if(f_esc>f_dust)
+		l += -1.*pow(f_esc/f_dust,2);
+
+#endif //ENFORCE_DUST_FESC_LIMIT
 
 	//Rescale the parameters
 	ip = 0;
